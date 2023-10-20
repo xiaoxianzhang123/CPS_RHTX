@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 
 #define MCAST_PORT 8888
-#define MCAST_ADDR "239.0.0.1" // 组播地址
+#define MCAST_ADDR "239.0.253.0" // 组播地址
 #define BUF_SIZE 1024
 #define V 8
 #define routing_num 8
