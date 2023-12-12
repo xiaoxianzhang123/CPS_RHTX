@@ -26,6 +26,7 @@ int main() {
     local_addr.sin_port = htons(MCAST_PORT);
 
     bind(sock, (struct sockaddr*)&local_addr, sizeof(local_addr));
+
     
 
     struct ip_mreq mreq;
