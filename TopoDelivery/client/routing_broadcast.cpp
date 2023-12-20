@@ -342,6 +342,10 @@ void get_topu(int str[][strength_num], int(&topu)[routing_num][routing_num], int
 					{
 						topu[i][j] = 1;
 					}
+					else
+					{
+						topu[i][j] = 0;
+					}
 				}
 			}
 
