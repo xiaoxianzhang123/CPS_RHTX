@@ -20,6 +20,7 @@
 #include <json/json.h>
 #include <curl/curl.h>
 #include "multicast.h"
+#include <fstream>
 extern "C" {
 #include <string.h>
 #include <sys/socket.h> 
@@ -102,6 +103,7 @@ routingTable::~routingTable()
 std::mutex mtx; 
 // 终端用户输入的数据：<ID_Number> <5G_server_IP> <5G_server_PORT> <mesh_broadcast_IP> <mesh_IP>
 // 其中，将核心的地址信息存入全局变量中，便于接收函数使用。
+char ID[3];//设备ID
 char fiveG_ip[20]; 
 char mesh_broadcast_IP[20]; 
 char mesh_IP[20]; 
@@ -111,6 +113,8 @@ extern int mesh_signal_strength[routing_num][strength_num];
 extern int fiveG_signal_strength[routing_num][strength_num];
 //标志是否收到消息，以进行路由计算
 bool received=0;
+std::string interfaceName_5G;
+std::string interfaceName_Mesh;
 //回调函数
 size_t write_callback(void* contents, size_t size, size_t nmemb, string* response)
 {
@@ -738,6 +742,17 @@ void update_routing_table(int src, routingTable* routing_table[routing_num], rou
 	}
 }
 
+bool isInterfaceUp(const std::string& interfaceName) 
+{
+    std::string path = "/sys/class/net/" + interfaceName + "/operstate";
+    std::ifstream file(path);
+    std::string state;
+    if (file >> state) {
+        return true;
+    }
+    return false;
+}
+
 void* routing_task(void *arg)
 {
 	//传入参数为设备号
@@ -768,7 +783,7 @@ void* routing_task(void *arg)
 		//加锁
 		mtx.lock();
 		//若是自己有电台连接，则自己获取电台的数据
-		if(mesh_addr[src_num] != "0")
+		if(isInterfaceUp(interfaceName_Mesh))
 		{
 			get_mesh_data(mesh_signal_strength, src_num);
 		}
@@ -833,8 +848,12 @@ void* recv_task(void *)
     while (1)
     {
 		cout<<"enter while condition"<<endl;
+		
+		if (isInterfaceUp(interfaceName));
         /*接收拓扑信息操作*/
-		if ((fiveG_ip[0] != '0')&&(mesh_broadcast_IP[0] != '0')&&(mesh_IP[0] != '0')) {
+		// if ((fiveG_ip[0] != '0')&&(mesh_broadcast_IP[0] != '0')&&(mesh_IP[0] != '0')) 
+		if(isInterfaceUp(interfaceName_5G) && isInterfaceUp(interfaceName_Mesh))
+		{
 			//这是融合节点的情况，所以要从mesh接收5g拓扑，从5g接收mesh拓扑。
 			
 			//加锁
@@ -844,7 +863,10 @@ void* recv_task(void *)
 			if(num==0) received=1;//成功接收，可以进行路由计算了
 			mtx.unlock();
 
-		}else if ((fiveG_ip[0] != '0')&&(mesh_broadcast_IP[0] == '0')&&(mesh_IP[0] == '0')){
+		}
+		// else if ((fiveG_ip[0] != '0')&&(mesh_broadcast_IP[0] == '0')&&(mesh_IP[0] == '0'))
+		else if(isInterfaceUp(interfaceName_5G) && !isInterfaceUp(interfaceName_Mesh))
+		{
 			//这是单一只连有5g节点的情况，所以要从基站收到mesh拓扑和5g拓扑
 			mtx.lock();
 			cout<<"enter 2th condition"<<endl;
@@ -853,7 +875,10 @@ void* recv_task(void *)
 			received=1;//成功接收，可以进行路由计算了。此处不严谨，因为recv_mesh_tuopu、fiveG_recv_fiveG_tuopu函数不可修改且没有返回值，不知道是否成功接收
 			mtx.unlock();
 
-		}else if ((fiveG_ip[0] == '0')&&(mesh_broadcast_IP[0] != '0')&&(mesh_IP[0] != '0')){
+		}
+		// else if ((fiveG_ip[0] == '0')&&(mesh_broadcast_IP[0] != '0')&&(mesh_IP[0] != '0'))
+		else if(!isInterfaceUp(interfaceName_5G) && isInterfaceUp(interfaceName_Mesh))
+		{
 			//这是单一只连有自组网节点的情况，所以要从电台收到mesh拓扑和5g拓扑，假设mesh拓扑可以从电台提供的接口获得，所以只接收了5g拓扑
 			mtx.lock();
 			cout<<"enter 3th condition"<<endl;
@@ -867,11 +892,14 @@ void* recv_task(void *)
     
 }
 
+
+
 /*Usage: ./code <ID_Number> <5G_server_IP> <mesh_broadcast_IP> <mesh_IP>*/
 /*以上数据若是没有直接输入0， 不能空着*/
 int main(int argc, char *argv[])
 {
 	//将终端用户输入的ip信息存入全局变量中
+	strcpy(ID,argv[1]);
 	strcpy(fiveG_ip, argv[2]);
 	strcpy(mesh_broadcast_IP, argv[3]);
 	strcpy(mesh_IP, argv[4]);
@@ -884,6 +912,19 @@ int main(int argc, char *argv[])
         cout << "Usage: ./" << argv[0] << "<ID_Number> <5G_server_IP> <mesh_broadcast_IP> <mesh_IP>" << endl;
         return -1;
     }
+
+	//用于检查某些接口是否中途断开
+	interfaceName_5G = "pcilan3"; // interface name
+	if(strcmp(ID,"7")!=0)//when the number of ID is "7",the interface have some changes because some problems.
+	{
+		interfaceName_Mesh = "pcilan2"; // interface name
+	}
+	else
+	{
+		interfaceName_Mesh = "pcilan1"; // interface name
+	}
+
+
     // 创建线程并启动任务
     //拓扑接收任务
     pthread_create(&t1, nullptr, recv_task, nullptr);
