@@ -150,7 +150,7 @@ int recv_fiveG_tuopu(const string& mesh_ip, const string& multicast_ip) {
             ss >> valueStr;  // 从字符串流中读取一个字符串
 
             // 将字符串转换为整数，并存储到目标数组
-            fiveG_signal_strength[i][j] = std::stoi(valueStr);4
+            fiveG_signal_strength[i][j] = std::stoi(valueStr);
         }
     }
 
