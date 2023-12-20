@@ -586,7 +586,7 @@ void add_route(routingTable* routing_table_item, int src)
     std::string interface = routing_table_item->R_next_type;
 	std::string command  = "";
 	std::string command2 = "";
-    command = sudoPermission + " "  +  "ip route add"+ " " + destination + "/24 " + "via" + " " + next_addr + " " + "dev" + " " + interface;
+    command = sudoPermission + " "  +  "ip route add"+ " " + destination + "/24 " + "via " + " " + next_addr + " " + "dev" + " " + interface;
 	cout << command << endl;
 	// 使用system函数执行shell命令
 	int result = std::system(command.c_str());
@@ -607,7 +607,7 @@ void add_route(routingTable* routing_table_item, int src)
 		//如果当前源节点不是融合节点
 		if(fiveG_addr[src] == "0" && fiveG_addr[routing_table_item->R_fuse_id] != "0")
 		{
-			command2 = sudoPermission + " "  +  "ip route add"+ " " + fiveG_addr[routing_table_item->R_fuse_id] + " via" + " " + next_addr;
+			command2 = sudoPermission + " "  +  "ip route add" + " " + fiveG_addr[routing_table_item->R_fuse_id] + " via" + " " + next_addr;
 		}
 		cout << command2 << endl;
 		// 使用system函数执行shell命令
@@ -655,7 +655,7 @@ void delete_route(routingTable* routing_table_item, int src)
     std::string interface = routing_table_item->R_next_type;
 	std::string command = "";
 	std::string command2 = "";
-	command = sudoPermission + " "  +  "ip route add"+ " " + destination + "/24 " + "via" + " " + routing_table_item->R_next_addr + " " + "dev" + " " + interface;	
+	command = sudoPermission + " "  +  "ip route del"+ " " + destination + "/24 " + "via " + " " + routing_table_item->R_next_addr + " " + "dev" + " " + interface;
 	cout << command << endl;
 	// 使用system函数执行shell命令
     int result = std::system(command.c_str());
