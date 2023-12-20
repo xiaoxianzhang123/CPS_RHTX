@@ -586,7 +586,7 @@ void add_route(routingTable* routing_table_item, int src)
     std::string interface = routing_table_item->R_next_type;
 	std::string command  = "";
 	std::string command2 = "";
-    command = sudoPermission + " "  +  "ip route add "+ " " + destination + "/24 " + " via " + " " + next_addr + " " + " dev " + " " + interface;
+    command = sudoPermission + " "  +  "ip route add"+ " " + destination + "/24 " + "via" + " " + next_addr + " " + "dev" + " " + interface;
 	cout << command << endl;
 	// 使用system函数执行shell命令
 	int result = std::system(command.c_str());
@@ -602,12 +602,12 @@ void add_route(routingTable* routing_table_item, int src)
 		//如果当前源节点不是融合节点
 		if(mesh_addr[src] == "0" && mesh_addr[routing_table_item->R_fuse_id] != "0")
 		{
-			command2 = sudoPermission + " "  +  "ip route add "+ " " + mesh_addr[routing_table_item->R_fuse_id] + " via " + " " + next_addr;
+			command2 = sudoPermission + " "  +  "ip route add"+ " " + mesh_addr[routing_table_item->R_fuse_id] + " via" + " " + next_addr;
 		}
 		//如果当前源节点不是融合节点
 		if(fiveG_addr[src] == "0" && fiveG_addr[routing_table_item->R_fuse_id] != "0")
 		{
-			command2 = sudoPermission + " "  +  "ip  route add "+ " " + fiveG_addr[routing_table_item->R_fuse_id] + " via " + " " + next_addr;
+			command2 = sudoPermission + " "  +  "ip route add"+ " " + fiveG_addr[routing_table_item->R_fuse_id] + " via" + " " + next_addr;
 		}
 		cout << command2 << endl;
 		// 使用system函数执行shell命令
@@ -655,7 +655,7 @@ void delete_route(routingTable* routing_table_item, int src)
     std::string interface = routing_table_item->R_next_type;
 	std::string command = "";
 	std::string command2 = "";
-	command = sudoPermission + " " + " ip route del " + " " + destination + " " + " via " + " " +  gateway;	
+	command = sudoPermission + " "  +  "ip route add"+ " " + destination + "/24 " + "via" + " " + routing_table_item->R_next_addr + " " + "dev" + " " + interface;	
 	cout << command << endl;
 	// 使用system函数执行shell命令
     int result = std::system(command.c_str());
@@ -671,12 +671,12 @@ void delete_route(routingTable* routing_table_item, int src)
 		//如果当前源节点不是融合节点
 		if(mesh_addr[src] == "0" && mesh_addr[routing_table_item->R_fuse_id] != "0")
 		{
-			command2 = sudoPermission + " "  +  "ip route del "+ " " + mesh_addr[routing_table_item->R_fuse_id] + " via " + " " + routing_table_item->R_next_addr;
+			command2 = sudoPermission + " "  +  "ip route del"+ " " + mesh_addr[routing_table_item->R_fuse_id] + " via" + " " + routing_table_item->R_next_addr;
 		}
 		//如果当前源节点不是融合节点
 		if(fiveG_addr[src] == "0" && fiveG_addr[routing_table_item->R_fuse_id] != "0")
 		{
-			command2 = sudoPermission + " "  +  "ip  route del "+ " " + fiveG_addr[routing_table_item->R_fuse_id] + " via " + " " + routing_table_item->R_next_addr;
+			command2 = sudoPermission + " "  +  "ip route del"+ " " + fiveG_addr[routing_table_item->R_fuse_id] + " via" + " " + routing_table_item->R_next_addr;
 		}
 		cout << command2 << endl;
 		// 使用system函数执行shell命令
@@ -723,7 +723,7 @@ void update_routing_table(int src, routingTable* routing_table[routing_num], rou
 					|| routing_table[i]->dist != previous_routing_table[j]->dist)
 				{
 					//删除路由
-					delete_route(routing_table[i], src);
+					delete_route(previous_routing_table[j], src);
 					//添加新路由
 					add_route(routing_table[i], src);
 				}
@@ -800,8 +800,6 @@ void* routing_task(void *arg)
 			}
 			cout << endl;
 		}
-		//解锁
-		mtx.unlock();
         //运行Dijkstr算法,计算路由表
         dijkstra(fiveG_topu_source, mesh_topu_source, src_num, current_routing_table);
 		// 打印路由表
@@ -832,6 +830,8 @@ void* routing_task(void *arg)
             previous_routing_table[i]->R_fuse_id = current_routing_table[i]->R_fuse_id;
         }
 		received=0;//使received为0，需要收到消息才能进行路由计算。
+		//解锁
+		mtx.unlock();
         //休眠3秒
         nanosleep(&sleepTime, nullptr);
     }
