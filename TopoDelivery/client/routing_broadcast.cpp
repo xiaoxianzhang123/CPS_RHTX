@@ -748,7 +748,7 @@ bool isInterfaceUp(const std::string& interfaceName)
     std::ifstream file(path);
     std::string state;
     if (file >> state) {
-        return true;
+        return state == "up";
     }
     return false;
 }
@@ -849,7 +849,6 @@ void* recv_task(void *)
     {
 		cout<<"enter while condition"<<endl;
 		
-		if (isInterfaceUp(interfaceName));
         /*接收拓扑信息操作*/
 		// if ((fiveG_ip[0] != '0')&&(mesh_broadcast_IP[0] != '0')&&(mesh_IP[0] != '0')) 
 		if(isInterfaceUp(interfaceName_5G) && isInterfaceUp(interfaceName_Mesh))
