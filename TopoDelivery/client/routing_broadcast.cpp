@@ -44,7 +44,7 @@ string mesh_addr[routing_num] = {
 	"0","0","0","0","0","0","0",
 	"10.2.7.1",
 	"0","0","10.2.10.1","0","0","0","10.2.14.1","0","0","0","0","0","0","0","0","0","0",
-	"0",
+	"10.2.25.1",
 	"0","0","0","0","0","0"
 };
 
@@ -62,16 +62,10 @@ string bignet_addr[routing_num] = {
 	"0","0","0","0","10.3.4.0","0","0",
 	"10.3.7.0",
 	"0","0","10.3.10.0","0","0","0","10.3.14.0","0","0","0","0","0","0","0","0","0","0",
-	"0",
+	"10.3.25.0",
 	"0","0","0","0","0","0"
 };
-// //下挂PCIP地址,
-// string PC_addr[routing_num][1] = {
-// 	{"10.1.4.101"},
-// 	{"10.1.3.101"},
-// 	{"10.1.25.101"},
-	
-// };
+
 // 路由表类
 class routingTable
 {
@@ -115,6 +109,8 @@ char mesh_IP[20];
 extern int mesh_signal_strength[routing_num][strength_num];
 //定义5G路径权重
 extern int fiveG_signal_strength[routing_num][strength_num];
+//标志是否收到消息，以进行路由计算
+bool received=0;
 //回调函数
 size_t write_callback(void* contents, size_t size, size_t nmemb, string* response)
 {
@@ -231,15 +227,15 @@ void get_mesh_data(int (&mesh_signal_strength)[routing_num][strength_num], int i
 		}
 		std::cout << std::endl;
 	}
-    cout << "保存到拓扑表的数据："<<endl;
-    for(int i = 0; i < routing_num; i++)
-    {
-        for(int j = 0; j < strength_num; j++)
-        {
-            cout << mesh_signal_strength[i][j] << " ";
-        }
-        cout << endl;
-    }
+    // cout << "保存到拓扑表的数据："<<endl;
+    // for(int i = 0; i < routing_num; i++)
+    // {
+    //     for(int j = 0; j < strength_num; j++)
+    //     {
+    //         cout << mesh_signal_strength[i][j] << " ";
+    //     }
+    //     cout << endl;
+    // }
 }
 //10机制转为2进制函数，除以2取余
 string ten_to_two(int num)
@@ -306,7 +302,8 @@ void get_one_point_strength(int str[strength_num], int * signalStrength)
 // 建立拓扑图
 // str是字符串数组，就是D1-D8
 // 第二个参数是引用
-void get_topu(int str[][strength_num], int(&topu)[routing_num][routing_num])
+// flag：>0:5G 0:自组网
+void get_topu(int str[][strength_num], int(&topu)[routing_num][routing_num], int flag)
 {
 	//数值等于0表示无连接，1表示连接信号为3,2表示连接信号为2,3表示连接信号为1
 	//并且连接边的权值为1，最多一个子网33个节点，D1-D8,4*8+1=33。
@@ -326,14 +323,26 @@ void get_topu(int str[][strength_num], int(&topu)[routing_num][routing_num])
 			// 填入先前获得的信号强度
 			else
 			{
-				if (signalStrength[j] == 3)
-					topu[i][j] = 1;
-				else if (signalStrength[j] == 2)
-					topu[i][j] = 2;
-				else if (signalStrength[j] == 1)
-					topu[i][j] = 3;
+				//mesh
+				if(flag == 0)
+				{
+					if (signalStrength[j] == 3)
+						topu[i][j] = 1;
+					else if (signalStrength[j] == 2)
+						topu[i][j] = 2;
+					else if (signalStrength[j] == 1)
+						topu[i][j] = 3;
+					else
+						topu[i][j] = 0;
+				}
+				//5G
 				else
-					topu[i][j] = 0;
+				{
+					if (signalStrength[j] > 0)
+					{
+						topu[i][j] = 1;
+					}
+				}
 			}
 
 		}
@@ -478,8 +487,6 @@ void dijkstra(int fiveG_topu_source[V][V], int graph[V][V], int src, routingTabl
                             routing_table[v]->R_next_addr = routing_table[u]->R_next_addr;
                             routing_table[v]->R_iface_addr = routing_table[u]->R_iface_addr;
 						}
-						// 填写下挂PC地址
-						//routing_table[v]->R_PC_addr = PC_addr[v][0];
 					}
 					// 否则更改已有的条目
 					else
@@ -514,8 +521,6 @@ void dijkstra(int fiveG_topu_source[V][V], int graph[V][V], int src, routingTabl
                             routing_table[v]->R_next_addr = routing_table[u]->R_next_addr;
                             routing_table[v]->R_iface_addr = routing_table[u]->R_iface_addr;
 						}
-						// 填写下挂PC地址
-						//routing_table[v]->R_PC_addr = PC_addr[v][0];
 					}
 					//记录当前路由节点
 					routing_table[v]->R_fuse_id = v;
@@ -704,10 +709,10 @@ void update_routing_table(int src, routingTable* routing_table[routing_num], rou
 			//若存在，对比是否需要更新
 			if(j != routing_num)
 			{
-				//链路发生变化,跳数变小
+				//链路发生变化,不能是链路链路变好才更新，因为有可能原来好的链路确实不存在了
 				if(routing_table[i]->R_next_type != previous_routing_table[j]->R_next_type
-					|| routing_table[i]->R_dist < previous_routing_table[j]->R_dist
-					|| routing_table[i]->dist < previous_routing_table[j]->dist)
+					|| routing_table[i]->R_dist != previous_routing_table[j]->R_dist
+					|| routing_table[i]->dist != previous_routing_table[j]->dist)
 				{
 					//删除路由
 					delete_route(routing_table[i], src);
@@ -751,6 +756,11 @@ void* routing_task(void *arg)
     /*以下工作需要重复执行， 注释部分是调试信息输出*/
     while(1)
     {
+		if(received==0)
+		{
+			sleep(1);
+			continue;
+		}
 		//加锁
 		mtx.lock();
 		//若是自己有电台连接，则自己获取电台的数据
@@ -759,20 +769,10 @@ void* routing_task(void *arg)
 			get_mesh_data(mesh_signal_strength, src_num);
 		}
         //获取mesh拓扑图
-        get_topu(mesh_signal_strength, mesh_topu_source);
-		for(int i = 0; i < routing_num; i++)
-		{
-			for(int j = 0; j < routing_num; j++)
-			{
-				if(mesh_topu_source[i][j] > 0)
-				{
-					mesh_topu_source[i][j] += 3;
-				}
-			}
-		}
+        get_topu(mesh_signal_strength, mesh_topu_source, 0);
         //cout << "5G数据处理" << endl;
         //获取5G拓扑图
-        get_topu(fiveG_signal_strength, fiveG_topu_source);
+        get_topu(fiveG_signal_strength, fiveG_topu_source, 1);
 		for(int i = 0; i < 32; i++)
 		{
 			for(int j = 0; j < 32; j++)
@@ -812,6 +812,7 @@ void* routing_task(void *arg)
             previous_routing_table[i]->R_dist = current_routing_table[i]->R_dist;
             previous_routing_table[i]->R_fuse_id = current_routing_table[i]->R_fuse_id;
         }
+		received=0;//使received为0，需要收到消息才能进行路由计算。
         //休眠3秒
         nanosleep(&sleepTime, nullptr);
     }
@@ -836,7 +837,7 @@ void* recv_task(void *)
 			mtx.lock();
 			cout<<"enter 1th condition"<<endl;
 			int num = recv_fiveG_tuopu(mesh_IP, mesh_broadcast_IP);    
-			//recv_mesh_tuopu(fiveG_ip);
+			if(num==0) received=1;//成功接收，可以进行路由计算了
 			mtx.unlock();
 
 		}else if ((fiveG_ip[0] != '0')&&(mesh_broadcast_IP[0] == '0')&&(mesh_IP[0] == '0')){
@@ -845,6 +846,7 @@ void* recv_task(void *)
 			cout<<"enter 2th condition"<<endl;
 			recv_mesh_tuopu(fiveG_ip);
 			fiveG_recv_fiveG_tuopu(fiveG_ip);
+			received=1;//成功接收，可以进行路由计算了。此处不严谨，因为recv_mesh_tuopu、fiveG_recv_fiveG_tuopu函数不可修改且没有返回值，不知道是否成功接收
 			mtx.unlock();
 
 		}else if ((fiveG_ip[0] == '0')&&(mesh_broadcast_IP[0] != '0')&&(mesh_IP[0] != '0')){
@@ -852,6 +854,7 @@ void* recv_task(void *)
 			mtx.lock();
 			cout<<"enter 3th condition"<<endl;
 			int num = recv_fiveG_tuopu(mesh_IP, mesh_broadcast_IP);
+			if(num==0) received=1;//成功接收，可以进行路由计算了
 			mtx.unlock();
 		}
         nanosleep(&sleepTime, nullptr);
