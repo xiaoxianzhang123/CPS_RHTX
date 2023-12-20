@@ -915,7 +915,7 @@ int main(int argc, char *argv[])
 
 	//用于检查某些接口是否中途断开
 	interfaceName_5G = "pcilan3"; // interface name
-	if(strcmp(ID,"7")!=0)//when the number of ID is "7",the interface have some changes because some problems.
+	if(strcmp(ID,"12")!=0)//when the number of ID is "7",the interface have some changes because some problems.
 	{
 		interfaceName_Mesh = "pcilan2"; // interface name
 	}
