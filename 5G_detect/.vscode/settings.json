@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "stdio.h": "c",
+        "fcntl.h": "c",
+        "ip_icmp.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "enabled"
+}
