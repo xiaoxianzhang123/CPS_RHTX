@@ -21,6 +21,7 @@
 #include <curl/curl.h>
 #include "multicast.h"
 #include <fstream>
+#include "hongyu"
 extern "C" {
 #include <string.h>
 #include <sys/socket.h> 
@@ -907,6 +908,7 @@ int main(int argc, char *argv[])
     // 创建线程变量
     pthread_t t1;
     pthread_t t2;
+	pthread_t t3;
     //判断参数
     if(argc != 5)
     {
@@ -931,9 +933,12 @@ int main(int argc, char *argv[])
     pthread_create(&t1, nullptr, recv_task, nullptr);
     //路由计算任务
     pthread_create(&t2, nullptr, routing_task, (void *)argv[1]);
+	//接口服务器
+	pthread_create(&t3, nullptr, hongyu, nullptr);
     // 主线程等待线程结束
     pthread_join(t1, nullptr);
     pthread_join(t2, nullptr);
+	pthread_join(t3, nullptr);
 
     return 0;
 }
