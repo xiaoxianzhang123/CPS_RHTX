@@ -112,6 +112,9 @@ char mesh_IP[20];
 extern int mesh_signal_strength[routing_num][strength_num];
 //定义5G路径权重
 extern int fiveG_signal_strength[routing_num][strength_num];
+//未压缩的拓扑距离
+int mesh_topu_source[routing_num][routing_num];
+int fiveG_topu_source[routing_num][routing_num];
 //标志是否收到消息，以进行路由计算
 bool received=0;
 std::string interfaceName_5G;
@@ -764,9 +767,7 @@ void* routing_task(void *arg)
     //定义路由表项结构体
     routingTable* current_routing_table[routing_num];
     routingTable* previous_routing_table[routing_num];
-    //拓扑距离
-    int mesh_topu_source[routing_num][routing_num];
-    int fiveG_topu_source[routing_num][routing_num];
+
     // 初始化路由表类数组
     for (int i = 0; i < routing_num; i++)
     {
