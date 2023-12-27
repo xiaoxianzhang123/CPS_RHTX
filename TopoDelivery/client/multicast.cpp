@@ -7,6 +7,8 @@
 #include <sstream>
 #include <cstring>
 
+
+
 using namespace std;
 
 int mesh_signal_strength[MESH_NODE_NUM][MESH_NODE_NUM/4];

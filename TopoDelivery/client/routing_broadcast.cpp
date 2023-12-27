@@ -1,12 +1,4 @@
-/*
-* Dijkstra代码修改，应用于网络路由，通过SDK接口获得各个节点之间的连接状态，
-* 构建各节点之间的拓扑图，信号强度作为边的权重距离，信号强度越大，权值距
-* 离越小，根据Dijkstra路由算法构建本节点到其余节点的最短路径。
-* 2023年11月20日
-* 何梓豪
-* 融合通信项目组
-* 路由代码
-*/
+
 #include <iostream>
 #include <chrono>
 #include <pthread.h>
@@ -19,27 +11,26 @@
 #include <mutex>
 #include <json/json.h>
 #include <curl/curl.h>
-#include "multicast.h"
 #include <fstream>
-#include "hongyu"
+
 extern "C" {
 #include <string.h>
 #include <sys/socket.h> 
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <linux/route.h>
+// #include <linux/route.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <error.h>
 }
+
+#include "multicast.h"
+#include "http_interfaces.h"
+#include "client.h"
+
 using namespace std;
 
-// 图中的顶点数,后续根据SDK接口获取的节点数量来确定
-#define V 32
-#define routing_num 32
-#define strength_num 8 
-#define BROADCAST_TIME 1
-#define ROUTING_TIME 3
+
 
 // meshvxlan1地址
 string mesh_addr[routing_num] = {
@@ -894,6 +885,15 @@ void* recv_task(void *)
     
 }
 
+void* httpserver(void *)
+{
+    //定义http接口实例类
+	HTTPServerManager httpServerManager;
+	httpServerManager.SetHttpsever(true);
+    return nullptr;
+    
+}
+
 
 
 /*Usage: ./code <ID_Number> <5G_server_IP> <mesh_broadcast_IP> <mesh_IP>*/
@@ -909,6 +909,8 @@ int main(int argc, char *argv[])
     pthread_t t1;
     pthread_t t2;
 	pthread_t t3;
+
+
     //判断参数
     if(argc != 5)
     {
@@ -934,12 +936,11 @@ int main(int argc, char *argv[])
     //路由计算任务
     pthread_create(&t2, nullptr, routing_task, (void *)argv[1]);
 	//接口服务器
-	pthread_create(&t3, nullptr, hongyu, nullptr);
+	pthread_create(&t3, nullptr, httpserver, nullptr);
     // 主线程等待线程结束
     pthread_join(t1, nullptr);
     pthread_join(t2, nullptr);
 	pthread_join(t3, nullptr);
-
     return 0;
 }
 /*把该程序以守护进程运行在后台，开机跑完脚本后自启动*/
