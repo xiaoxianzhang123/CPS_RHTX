@@ -1,35 +1,30 @@
-#ifndef __HTTP_INTER_H
-#define __HTTP_INTER_H
-
-
 #pragma once
 #include <iostream>
 #include <cpprest/http_listener.h>
 #include <cpprest/json.h>
 #include <chrono>
 #include <thread>
-#include <stdio.h>
+#include <cstdio>
 #include <array>
 #include <atomic>
 
 
-//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//Æô¶¯º¯Êý
 class HTTPServerManager {
 public:
     HTTPServerManager() : serverRunning(false) {}
 
-    void* SetHttpsever(bool startServer);
+    void SetHttpsever(bool startServer);
 
 private:
-    web::http::experimental::listener::http_listener listener;
     std::atomic<bool> serverRunning;
 };
 
 
-//ï¿½ï¿½Ñ¯ï¿½à£¬ï¿½ï¿½ï¿½ï¿½ï¿½ë£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä½Ó¿ï¿½
+//²éÑ¯Àà£¬ÓÐÊäÈë£¬ÓÐÊä³öµÄ½Ó¿Ú
 
 
-//IDQueryï¿½ï¿½ï¿½ï¿½IDï¿½ï¿½Ñ¯
+//IDQuery£¬¼´ID²éÑ¯
 class IDQuery {
 public:
     IDQuery();
@@ -39,7 +34,7 @@ private:
     web::http::experimental::listener::http_listener listener;
 };
 
-//TopologyQueryï¿½ï¿½ï¿½Ë²ï¿½Ñ¯
+//TopologyQueryÍØÆË²éÑ¯
 class TopologyQuery {
 public:
     TopologyQuery();
@@ -50,7 +45,7 @@ private:
 };
 
 
-//SourceQueryÔ´ï¿½è±¸ï¿½Ð±ï¿½ï¿½ï¿½Ñ¯
+//SourceQueryÔ´Éè±¸ÁÐ±í²éÑ¯
 class SourceQuery {
 public:
     SourceQuery();
@@ -59,20 +54,3 @@ public:
 private:
     web::http::experimental::listener::http_listener listener;
 };
-
-// void HTTPServerManager::SetHttpserver(bool startServer);
-// string executeCommand(const char* cmd);
-// int getLinkStatus(const std::string& interfaceName);
-// IDQuery::IDQuery() : listener(web::http::experimental::listener::http_listener(U("http://localhost:8000/query/id")));
-// void IDQuery::HandleRequest(web::http::http_request request);
-// TopologyQuery::TopologyQuery() : listener(web::http::experimental::listener::http_listener(U("http://localhost:8000/query/topo")));
-// void TopologyQuery::HandleRequest(web::http::http_request request);
-// web::json::value createResponse(const std::unordered_map<std::string, std::string>& ipAddresses,
-//     const std::unordered_map<int, std::string>& typeToPcilan,
-//     const std::vector<ConnectionInfo>& connections);
-// SourceQuery::SourceQuery() : listener(web::http::experimental::listener::http_listener(U("http://localhost:8000/query/source")));
-// void SourceQuery::HandleRequest(web::http::http_request request);
-
-
-
-#endif

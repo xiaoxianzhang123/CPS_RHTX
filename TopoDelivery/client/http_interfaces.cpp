@@ -7,6 +7,7 @@
 #include <cstdio>
 #endif
 //头文件列表
+#include "http_interfaces.h"
 #include <iostream>
 #include <cpprest/http_listener.h>
 #include <cpprest/http_client.h>
@@ -17,16 +18,6 @@
 #include <sstream>
 #include <unordered_map>
 #include <vector>
-#include "http_interfaces.h"
-#include "client.h"
-
-
-//TopologyQuery拓扑查询
-extern int mesh_topu_source[routing_num][routing_num];
-extern int fiveG_topu_source[routing_num][routing_num];
-
-
-
 
 
 //启动函数
@@ -43,24 +34,22 @@ extern int fiveG_topu_source[routing_num][routing_num];
 //serverManager.SetHttpsever(false);
 // 
 //
-void* HTTPServerManager::SetHttpsever(bool startServer) {
+void HTTPServerManager::SetHttpsever(bool startServer) {
     if (startServer) {
-        if (!serverRunning.load()) {
-            std::thread httpThread([this]() {
-                while (serverRunning.load()) {
-                    std::this_thread::sleep_for(std::chrono::seconds(1));
-                }
-                });
+        std::thread httpThread([]() {
+            // 启动HTTP服务器监听器的线程
+            IDQuery idQueryHandler;
+            TopologyQuery topoQueryHandler;
+            SourceQuery sourceQueryHandler;
 
-            serverRunning.store(true);
-            httpThread.detach();
-        }
+            while (true) {
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+            }
+            });
+        httpThread.detach(); // 释放线程，让它在后台运行
     }
-    else {
-        serverRunning.store(false);
-    }
-    return nullptr;
 }
+
 
 
 
@@ -203,7 +192,10 @@ void IDQuery::HandleRequest(web::http::http_request request) {
 }
 
 
+//TopologyQuery拓扑查询
 
+extern int mesh_topu_source[routing_num][routing_num];
+extern int fiveG_topu_source[routing_num][routing_num];
 
 TopologyQuery::TopologyQuery() : listener(web::http::experimental::listener::http_listener(U("http://localhost:8000/query/topo"))) {               //改这里，就修改TopologyQuery监听的地址,实机测试时地址为：http://10.3.x.1/query/topo
     listener.support(web::http::methods::GET, [this](web::http::http_request request) {
@@ -371,5 +363,4 @@ void SourceQuery::HandleRequest(web::http::http_request request) {
         request.reply(web::http::status_codes::InternalError, U("Internal server error"));
     }
 }
-
 
