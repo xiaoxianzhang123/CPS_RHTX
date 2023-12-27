@@ -3,6 +3,8 @@
 #include <stdio.h>
 #define popen _popen
 #define pclose _pclose
+
+
 #else
 #include <cstdio>
 #endif
@@ -18,6 +20,15 @@
 #include <sstream>
 #include <unordered_map>
 #include <vector>
+#include "client.h"
+#include <string>
+
+std::string localhost="10.3.6.1";
+
+//TopologyQuery拓扑查询
+
+extern int mesh_topu_source[routing_num][routing_num];
+extern int fiveG_topu_source[routing_num][routing_num];
 
 
 //启动函数
@@ -114,7 +125,7 @@ int getLinkStatus(const std::string& interfaceName) {
 
 
 //IDQuery
-IDQuery::IDQuery() : listener(web::http::experimental::listener::http_listener(U("http://localhost:8000/query/id"))) {               //改这里，就修改IDQuery监听的地址，实机测试时地址为：http://10.3.x.1/query/id
+IDQuery::IDQuery() : listener(web::http::experimental::listener::http_listener(U("http://"+localhost+":8000/query/id"))) {               //改这里，就修改IDQuery监听的地址，实机测试时地址为：http://10.3.x.1/query/id
     listener.support(web::http::methods::GET, [this](web::http::http_request request) {
         HandleRequest(request);
         });
@@ -192,12 +203,9 @@ void IDQuery::HandleRequest(web::http::http_request request) {
 }
 
 
-//TopologyQuery拓扑查询
 
-extern int mesh_topu_source[routing_num][routing_num];
-extern int fiveG_topu_source[routing_num][routing_num];
 
-TopologyQuery::TopologyQuery() : listener(web::http::experimental::listener::http_listener(U("http://localhost:8000/query/topo"))) {               //改这里，就修改TopologyQuery监听的地址,实机测试时地址为：http://10.3.x.1/query/topo
+TopologyQuery::TopologyQuery() : listener(web::http::experimental::listener::http_listener(U("http://"+localhost+":8000/query/topo"))) {               //改这里，就修改TopologyQuery监听的地址,实机测试时地址为：http://10.3.x.1/query/topo
     listener.support(web::http::methods::GET, [this](web::http::http_request request) {
         HandleRequest(request);
         });
@@ -212,24 +220,64 @@ TopologyQuery::TopologyQuery() : listener(web::http::experimental::listener::htt
 }
 
 
+// void TopologyQuery::HandleRequest(web::http::http_request request) {
+//     try {
+//         // 构建 mesh_topo 和 fiveG_topo 的 JSON 数组
+//         web::json::value meshTopo;
+//         web::json::value fiveGTopo;
+
+//         // 将 mesh_topu_source 转换为 JSON 数组
+//         for (int i = 0; i < routing_num; ++i) {
+//             for (int j = 0; j < routing_num; ++j) {
+//                 meshTopo[i * routing_num + j] = web::json::value::number(mesh_topu_source[i][j]);
+//             }
+//         }
+
+//         // 将 fiveG_topu_source 转换为 JSON 数组
+//         for (int i = 0; i < routing_num; ++i) {
+//             for (int j = 0; j < routing_num; ++j) {
+//                 fiveGTopo[i * routing_num + j] = web::json::value::number(fiveG_topu_source[i][j]);
+//             }
+//         }
+
+//         // 构建最终 JSON 响应
+//         web::json::value response;
+//         response[U("code")] = web::json::value::string(U("1"));
+//         response[U("msg")] = web::json::value::string(U("success"));
+//         response[U("mesh_topo")] = meshTopo; // 将 mesh_topu_source 转换后的 JSON 数组放入响应中
+//         response[U("fiveG_topo")] = fiveGTopo; // 将 fiveG_topu_source 转换后的 JSON 数组放入响应中
+
+//         // 回复请求
+//         request.reply(web::http::status_codes::OK, response);
+//     }
+//     catch (const std::exception& ex) {
+//         std::cerr << "Exception caught: " << ex.what() << std::endl;
+//         request.reply(web::http::status_codes::InternalError, U("Internal server error"));
+//     }
+// }
+
 void TopologyQuery::HandleRequest(web::http::http_request request) {
     try {
         // 构建 mesh_topo 和 fiveG_topo 的 JSON 数组
-        web::json::value meshTopo;
-        web::json::value fiveGTopo;
+        web::json::value meshTopo = web::json::value::array();
+        web::json::value fiveGTopo = web::json::value::array();
 
         // 将 mesh_topu_source 转换为 JSON 数组
         for (int i = 0; i < routing_num; ++i) {
+            web::json::value row = web::json::value::array();
             for (int j = 0; j < routing_num; ++j) {
-                meshTopo[i * routing_num + j] = web::json::value::number(mesh_topu_source[i][j]);
+                row[j] = web::json::value::number(mesh_topu_source[i][j]);
             }
+            meshTopo[i] = row;
         }
 
         // 将 fiveG_topu_source 转换为 JSON 数组
         for (int i = 0; i < routing_num; ++i) {
+            web::json::value row = web::json::value::array();
             for (int j = 0; j < routing_num; ++j) {
-                fiveGTopo[i * routing_num + j] = web::json::value::number(fiveG_topu_source[i][j]);
+                row[j] = web::json::value::number(fiveG_topu_source[i][j]);
             }
+            fiveGTopo[i] = row;
         }
 
         // 构建最终 JSON 响应
@@ -282,7 +330,7 @@ web::json::value createResponse(const std::unordered_map<std::string, std::strin
 }
 
 
-SourceQuery::SourceQuery() : listener(web::http::experimental::listener::http_listener(U("http://localhost:8000/query/source"))) {               //改这里，就修改SourceQuery监听的地址，实机测试时地址为：http://10.3.x.1/query/source
+SourceQuery::SourceQuery() : listener(web::http::experimental::listener::http_listener(U("http://"+localhost+":8000/query/source"))) {               //改这里，就修改SourceQuery监听的地址，实机测试时地址为：http://10.3.x.1/query/source
     listener.support(web::http::methods::GET, [this](web::http::http_request request) {
         HandleRequest(request);
         });
@@ -301,7 +349,7 @@ void SourceQuery::HandleRequest(web::http::http_request request) {
     try {
         std::string ifconfigOutput = executeCommand("ifconfig");
         // 用ifconfigOutput来存储通过命令ifconfig所得到的信息
-        std::vector<std::string> interfaceNames = { "pcilan0", "pcilan1", "pcilan2", "pcilan3" };
+        std::vector<std::string> interfaceNames = { "vxlan0", "vxlan1", "vxlan2", "vxlan3" };
         std::unordered_map<std::string, std::string> ipAddresses;
 
         //提取接口 IP 地址
@@ -321,10 +369,10 @@ void SourceQuery::HandleRequest(web::http::http_request request) {
 
         // 定义 type 到 pcilan 的映射
         std::unordered_map<int, std::string> typeToPcilan = {
-            {0, "pcilan0"},
-            {1, "pcilan1"},
-            {2, "pcilan2"},
-            {3, "pcilan3"}
+            {0, "vxlan0"},
+            {1, "vxlan1"},
+            {2, "vxlan2"},
+            {3, "vxlan3"}
             // 在此处添加更多的映射
         };
 
@@ -332,24 +380,24 @@ void SourceQuery::HandleRequest(web::http::http_request request) {
         // 例如，ipAddresses["pcilan0"] 将包含 pcilan0 接口的 IP 地址。
 
         std::vector<ConnectionInfo> connections;
-        int linkStatus0 = getLinkStatus("pcilan0");
+        int linkStatus0 = getLinkStatus("vxlan0");
         if (linkStatus0 != -1) {
-            connections.push_back({ 0, ipAddresses["pcilan0"] });
+            connections.push_back({ 0, ipAddresses["vxlan0"] });
         }
 
-        int linkStatus1 = getLinkStatus("pcilan1");
+        int linkStatus1 = getLinkStatus("vxlan1");
         if (linkStatus1 != -1) {
-            connections.push_back({ 1, ipAddresses["pcilan1"] });
+            connections.push_back({ 1, ipAddresses["vxlan1"] });
         }
 
-        int linkStatus2 = getLinkStatus("pcilan2");
+        int linkStatus2 = getLinkStatus("vxlan2");
         if (linkStatus2 != -1) {
-            connections.push_back({ 2, ipAddresses["pcilan2"] });
+            connections.push_back({ 2, ipAddresses["vxlan2"] });
         }
 
-        int linkStatus3 = getLinkStatus("pcilan3");
+        int linkStatus3 = getLinkStatus("vxlan3");
         if (linkStatus3 != -1) {
-            connections.push_back({ 3, ipAddresses["pcilan3"] });
+            connections.push_back({ 3, ipAddresses["vxlan3"] });
         }
 
         web::json::value jsonResponse = createResponse(ipAddresses, typeToPcilan, connections);
