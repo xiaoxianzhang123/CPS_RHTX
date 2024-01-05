@@ -258,44 +258,68 @@ TopologyQuery::TopologyQuery() : listener(web::http::experimental::listener::htt
 
 void TopologyQuery::HandleRequest(web::http::http_request request) {
     try {
-        //在现有的矩阵 mesh_topu_source 和 fiveG_topu_source 上进行操作，将主对角线元素改为0。
-        for (int i = 0; i < routing_num; ++i) {
-            mesh_topu_source[i][i] = 0;
-            fiveG_topu_source[i][i] = 0;
-        }
-
-        //生成新的矩阵 Meshtopu 和 FiveGtopu：，将修改后的矩阵转换成 JSON 数组。
-        web::json::value Meshtopu, FiveGtopu;
+        // 创建并复制 Meshtopo 和 FiveGtopo 矩阵
+        int Meshtopo[routing_num][routing_num];
+        int FiveGtopo[routing_num][routing_num];
 
         for (int i = 0; i < routing_num; ++i) {
             for (int j = 0; j < routing_num; ++j) {
-                Meshtopu[i * routing_num + j] = web::json::value::number(mesh_topu_source[i][j]);
-                FiveGtopu[i * routing_num + j] = web::json::value::number(fiveG_topu_source[i][j]);
+                Meshtopo[i][j] = mesh_topu_source[i][j];
+                FiveGtopo[i][j] = fiveG_topu_source[i][j];
             }
         }
 
-        //循环遍历数组，将非零元素改为1和2。
-        for (int i = 0; i < routing_num * routing_num; ++i) {
-            if (Meshtopu[i].as_integer() != 0) {
-                Meshtopu[i] = web::json::value::number(1);
-            }
-            if (FiveGtopu[i].as_integer() != 0) {
-                FiveGtopu[i] = web::json::value::number(2);
+        // 创建并复制 MeshQuality 和 FiveGQuality 矩阵
+        int MeshQuality[routing_num][routing_num];
+        int FiveGQuality[routing_num][routing_num];
+
+        for (int i = 0; i < routing_num; ++i) {
+            for (int j = 0; j < routing_num; ++j) {
+                MeshQuality[i][j] = Meshtopo[i][j];
+                FiveGQuality[i][j] = FiveGtopo[i][j];
             }
         }
 
-        //将两个新的矩阵对应位置上的元素相加得到新的矩阵RongHetopusource
-        web::json::value RongHetopusource;
+        // 对 Meshtopo 和 FiveGtopo 进行修改
+        for (int i = 0; i < routing_num; ++i) {
+            for (int j = 0; j < routing_num; ++j) {
+                Meshtopo[i][j] = (Meshtopo[i][j] != 0) ? 1 : 0;
+                FiveGtopo[i][j] = (FiveGtopo[i][j] != 0) ? 2 : 0;
+            }
+        }
 
-        for (int i = 0; i < routing_num * routing_num; ++i) {
-            RongHetopusource[i] = web::json::value::number(Meshtopu[i].as_integer() + FiveGtopu[i].as_integer());
+        // 对 Typetopo 进行计算
+        int Typetopo[routing_num][routing_num];
+
+        for (int i = 0; i < routing_num; ++i) {
+            for (int j = 0; j < routing_num; ++j) {
+                Typetopo[i][j] = Meshtopo[i][j] + FiveGtopo[i][j];
+            }
+        }
+
+        // 对 MeshQuality, FiveGQuality, Typetopo 进行操作
+        int RongHetopusource[routing_num][routing_num];
+
+        for (int i = 0; i < routing_num; ++i) {
+            for (int j = 0; j < routing_num; ++j) {
+                RongHetopusource[i][j] = Typetopo[i][j] * 100 + MeshQuality[i][j] * 10 + FiveGQuality[i][j];
+            }
+        }
+
+        // 将 RongHetopusource 转换为 JSON 数组
+        web::json::value RongHetopusourceArray;
+        for (int i = 0; i < routing_num; ++i) {
+            for (int j = 0; j < routing_num; ++j) {
+                RongHetopusourceArray[i * routing_num + j] = web::json::value::number(RongHetopusource[i][j]);
+            }
         }
 
         // 构建最终 JSON 响应
         web::json::value response;
         response[U("code")] = web::json::value::string(U("1"));
         response[U("msg")] = web::json::value::string(U("success"));
-        response[U("RongHetopu")] = RongHetopusource;
+        response[U("RongHetopo")] = RongHetopusourceArray;
+
         // 回复请求
         request.reply(web::http::status_codes::OK, response);
     }
