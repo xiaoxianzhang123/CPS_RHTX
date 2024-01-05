@@ -97,7 +97,7 @@ std::mutex mtx;
 // 终端用户输入的数据：<ID_Number> <5G_server_IP> <5G_server_PORT> <mesh_broadcast_IP> <mesh_IP>
 // 其中，将核心的地址信息存入全局变量中，便于接收函数使用。
 char ID[3];//设备ID
-char fiveG_ip[20]; 
+// char fiveG_ip[20]; 
 char mesh_broadcast_IP[20]; 
 char mesh_IP[20]; 
 //定义mesh路径权重
@@ -863,8 +863,9 @@ void* recv_task(void *)
 			//这是单一只连有5g节点的情况，所以要从基站收到mesh拓扑和5g拓扑
 			mtx.lock();
 			cout<<"enter 2th condition"<<endl;
-			recv_mesh_tuopu(fiveG_ip);
-			fiveG_recv_fiveG_tuopu(fiveG_ip);
+			// recv_mesh_tuopu(fiveG_ip);
+			recv_mesh_tuopu();
+			fiveG_recv_fiveG_tuopu();
 			received=1;//成功接收，可以进行路由计算了。此处不严谨，因为recv_mesh_tuopu、fiveG_recv_fiveG_tuopu函数不可修改且没有返回值，不知道是否成功接收
 			mtx.unlock();
 
@@ -902,9 +903,9 @@ int main(int argc, char *argv[])
 {
 	//将终端用户输入的ip信息存入全局变量中
 	strcpy(ID,argv[1]);
-	strcpy(fiveG_ip, argv[2]);
-	strcpy(mesh_broadcast_IP, argv[3]);
-	strcpy(mesh_IP, argv[4]);
+	// strcpy(fiveG_ip, argv[2]);
+	strcpy(mesh_broadcast_IP, argv[2]);
+	strcpy(mesh_IP, argv[3]);
     // 创建线程变量
     pthread_t t1;
     pthread_t t2;
@@ -912,9 +913,9 @@ int main(int argc, char *argv[])
 
 
     //判断参数
-    if(argc != 5)
+    if(argc != 4)
     {
-        cout << "Usage: ./" << argv[0] << "<ID_Number> <5G_server_IP> <mesh_broadcast_IP> <mesh_IP>" << endl;
+        cout << "Usage: ./" << argv[0] << "<ID_Number> <mesh_broadcast_IP> <mesh_IP>" << endl;
         return -1;
     }
 

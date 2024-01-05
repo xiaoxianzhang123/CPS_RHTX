@@ -226,7 +226,7 @@ void send_mesh_tuopu(const string& fiveG_ip1, const string& fiveG_ip2, int mesh_
 
 // -- 5g接收--
 //void recv_mesh_tuopu(const string& fiveG_ip, int mesh_signal_strength[MESH_NODE_NUM][MESH_NODE_NUM/4])
-void recv_mesh_tuopu(const string& fiveG_ip) {
+void recv_mesh_tuopu() {
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0) {
         cerr << "Failed to create socket" << endl;
@@ -248,7 +248,8 @@ void recv_mesh_tuopu(const string& fiveG_ip) {
     struct sockaddr_in sender_addr{};
     memset(&sender_addr, 0, sizeof(sender_addr));
     sender_addr.sin_family = AF_INET;
-    sender_addr.sin_addr.s_addr = inet_addr(fiveG_ip.c_str()); // 发送者地址
+    // sender_addr.sin_addr.s_addr = inet_addr(fiveG_ip.c_str()); // 发送者地址
+    sender_addr.sin_addr.s_addr = INADDR_ANY;
     sender_addr.sin_port = htons(12349);
 
     socklen_t sender_addr_len = sizeof(sender_addr);
@@ -326,7 +327,7 @@ void fiveG_send_fiveG_tuopu(const std::string& fiveG_ip1, const std::string& fiv
 }
 
 
-void fiveG_recv_fiveG_tuopu(const std::string& fiveG_ip){
+void fiveG_recv_fiveG_tuopu(){
     cout << "hello this is fiveG_recv_fiveG_tuopu" << endl;
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0) {
@@ -349,7 +350,8 @@ void fiveG_recv_fiveG_tuopu(const std::string& fiveG_ip){
     struct sockaddr_in sender_addr{};
     memset(&sender_addr, 0, sizeof(sender_addr));
     sender_addr.sin_family = AF_INET;
-    sender_addr.sin_addr.s_addr = inet_addr(fiveG_ip.c_str()); // 发送者地址
+    // sender_addr.sin_addr.s_addr = inet_addr(fiveG_ip.c_str()); // 发送者地址
+    sender_addr.sin_addr.s_addr = INADDR_ANY; // 发送者地址
     sender_addr.sin_port = htons(12350);
 
     socklen_t sender_addr_len = sizeof(sender_addr);

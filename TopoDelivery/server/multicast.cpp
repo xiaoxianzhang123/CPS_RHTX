@@ -7,6 +7,8 @@
 #include <sstream>
 #include <cstring>
 
+
+
 using namespace std;
 
 int mesh_signal_strength[MESH_NODE_NUM][MESH_NODE_NUM/4];
@@ -125,10 +127,12 @@ int recv_fiveG_tuopu(const string& mesh_ip, const string& multicast_ip) {
     char msgbuf[1024]; 
     //  // 假设消息大小不超过 1024 字节 存放5g拓扑的全局变量
     {
+        cout<<"before recvfrom by Mesh"<<endl;
         int nbytes = recvfrom(sock, msgbuf, sizeof(msgbuf), 0, (struct sockaddr *)&sender_addr, &sender_addr_len);
         if (nbytes < 0) {
             cerr << "Failed to receive data" << endl;
         }
+        cout<<"after recvfrom by Mesh"<<endl;
         
 
         //小小打印一下
@@ -222,7 +226,7 @@ void send_mesh_tuopu(const string& fiveG_ip1, const string& fiveG_ip2, int mesh_
 
 // -- 5g接收--
 //void recv_mesh_tuopu(const string& fiveG_ip, int mesh_signal_strength[MESH_NODE_NUM][MESH_NODE_NUM/4])
-void recv_mesh_tuopu(const string& fiveG_ip) {
+void recv_mesh_tuopu() {
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0) {
         cerr << "Failed to create socket" << endl;
@@ -244,10 +248,13 @@ void recv_mesh_tuopu(const string& fiveG_ip) {
     struct sockaddr_in sender_addr{};
     memset(&sender_addr, 0, sizeof(sender_addr));
     sender_addr.sin_family = AF_INET;
-    sender_addr.sin_addr.s_addr = inet_addr(fiveG_ip.c_str()); // 发送者地址
+    // sender_addr.sin_addr.s_addr = inet_addr(fiveG_ip.c_str()); // 发送者地址
+    sender_addr.sin_addr.s_addr = INADDR_ANY;
     sender_addr.sin_port = htons(12349);
 
     socklen_t sender_addr_len = sizeof(sender_addr);
+
+    cout<<"hello,this is recv_mesh_tuopu by 5G"<<endl;
 
     //以下为开始接收的代码块
     {
@@ -267,7 +274,7 @@ void recv_mesh_tuopu(const string& fiveG_ip) {
         }
         cout << endl;
     }
-
+    cout << "recv_mesh_tuopu" << endl;
     close(sock);
 }
 
@@ -316,12 +323,12 @@ void fiveG_send_fiveG_tuopu(const std::string& fiveG_ip1, const std::string& fiv
 
         //sleep(3); // 等待3秒
     }
-
     close(sock);
 }
 
 
-void fiveG_recv_fiveG_tuopu(const std::string& fiveG_ip){
+void fiveG_recv_fiveG_tuopu(){
+    cout << "hello this is fiveG_recv_fiveG_tuopu" << endl;
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0) {
         cerr << "Failed to create socket" << endl;
@@ -343,37 +350,35 @@ void fiveG_recv_fiveG_tuopu(const std::string& fiveG_ip){
     struct sockaddr_in sender_addr{};
     memset(&sender_addr, 0, sizeof(sender_addr));
     sender_addr.sin_family = AF_INET;
-    sender_addr.sin_addr.s_addr = inet_addr(fiveG_ip.c_str()); // 发送者地址
+    // sender_addr.sin_addr.s_addr = inet_addr(fiveG_ip.c_str()); // 发送者地址
+    sender_addr.sin_addr.s_addr = INADDR_ANY; // 发送者地址
     sender_addr.sin_port = htons(12350);
 
     socklen_t sender_addr_len = sizeof(sender_addr);
-
     //以下为开始接收的代码块
-    {
-        int msgbuf[16][4];
-        if (recvfrom(sock, msgbuf, FIVEG_NODE_NUM*(FIVEG_NODE_NUM/4)*sizeof(int), 0, (struct sockaddr *)&sender_addr, &sender_addr_len) < 0) {
-            cerr << "Failed to receive data" << endl;
-            close(sock);
-            return;
-        }
-        cout << "Received data from " << inet_ntoa(sender_addr.sin_addr) << ":" << ntohs(sender_addr.sin_port) << endl;
-        cout << "Received data:" << endl;
-        for (int i = 0; i < FIVEG_NODE_NUM; i++) {
-            for (int j = 0; j < FIVEG_NODE_NUM/4; j++) {
-                fiveG_signal_strength[i][j] = msgbuf[i][j];
-                //cout << fiveG_signal_strength[i][j] << " ";  
-            }
-            cout << endl;
-        }
-        for(int i = 0; i < 32 ; i ++){
-            for(int j = 0; j < 8; j ++){
-                cout << fiveG_signal_strength[i][j] << " ";
-            }
-            cout << endl;
+    cout << "didi" << endl;
+    int msgbuf[16][4];
+    if (recvfrom(sock, msgbuf, FIVEG_NODE_NUM*(FIVEG_NODE_NUM/4)*sizeof(int), 0, (struct sockaddr *)&sender_addr, &sender_addr_len) < 0) {
+        cerr << "Failed to receive data" << endl;
+        close(sock);
+        return;
+    }
+    cout << "Received data from " << inet_ntoa(sender_addr.sin_addr) << ":" << ntohs(sender_addr.sin_port) << endl;
+    cout << "Received data:" << endl;
+    for (int i = 0; i < FIVEG_NODE_NUM; i++) {
+        for (int j = 0; j < FIVEG_NODE_NUM/4; j++) {
+            fiveG_signal_strength[i][j] = msgbuf[i][j];
+            //cout << fiveG_signal_strength[i][j] << " ";  
         }
         cout << endl;
     }
-
+    for(int i = 0; i < 32 ; i ++){
+        for(int j = 0; j < 8; j ++){
+            cout << fiveG_signal_strength[i][j] << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
     close(sock);
 }
 
