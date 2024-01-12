@@ -129,6 +129,7 @@ int recv_fiveG_tuopu(const string& mesh_ip, const string& multicast_ip) {
     {
         cout<<"before recvfrom by Mesh"<<endl;
         int nbytes = recvfrom(sock, msgbuf, sizeof(msgbuf), 0, (struct sockaddr *)&sender_addr, &sender_addr_len);
+        cout<<"are you ok?:"<<nbytes<<endl;
         if (nbytes < 0) {
             cerr << "Failed to receive data" << endl;
         }
@@ -225,7 +226,7 @@ void send_mesh_tuopu(const string& fiveG_ip1, const string& fiveG_ip2, int mesh_
 }
 
 // -- 5g接收--
-//void recv_mesh_tuopu(const string& fiveG_ip, int mesh_signal_strength[MESH_NODE_NUM][MESH_NODE_NUM/4])
+// void recv_mesh_tuopu(const string& fiveG_ip) {
 void recv_mesh_tuopu() {
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0) {
@@ -247,10 +248,9 @@ void recv_mesh_tuopu() {
 
     struct sockaddr_in sender_addr{};
     memset(&sender_addr, 0, sizeof(sender_addr));
-    sender_addr.sin_family = AF_INET;
+    // sender_addr.sin_family = AF_INET;
     // sender_addr.sin_addr.s_addr = inet_addr(fiveG_ip.c_str()); // 发送者地址
-    sender_addr.sin_addr.s_addr = INADDR_ANY;
-    sender_addr.sin_port = htons(12349);
+    // sender_addr.sin_port = htons(12349);
 
     socklen_t sender_addr_len = sizeof(sender_addr);
 
@@ -328,6 +328,7 @@ void fiveG_send_fiveG_tuopu(const std::string& fiveG_ip1, const std::string& fiv
 
 
 void fiveG_recv_fiveG_tuopu(){
+// void fiveG_recv_fiveG_tuopu(const std::string& fiveG_ip){
     cout << "hello this is fiveG_recv_fiveG_tuopu" << endl;
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0) {
@@ -349,10 +350,9 @@ void fiveG_recv_fiveG_tuopu(){
 
     struct sockaddr_in sender_addr{};
     memset(&sender_addr, 0, sizeof(sender_addr));
-    sender_addr.sin_family = AF_INET;
+    // sender_addr.sin_family = AF_INET;
     // sender_addr.sin_addr.s_addr = inet_addr(fiveG_ip.c_str()); // 发送者地址
-    sender_addr.sin_addr.s_addr = INADDR_ANY; // 发送者地址
-    sender_addr.sin_port = htons(12350);
+    // sender_addr.sin_port = htons(12350);
 
     socklen_t sender_addr_len = sizeof(sender_addr);
     //以下为开始接收的代码块
