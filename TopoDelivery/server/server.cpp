@@ -846,8 +846,8 @@ void Send_Topo()
     string multicast_ip = "239.0.125.1";
     //string multicast_ip = "239.0.253.0";
     //string mesh_ip="192.168.14.12";
-    string mesh_ip="10.2.12.1";
-    string fiveG_ip="10.1.12.1";
+    string mesh_ip="10.2.6.1";
+    string fiveG_ip="10.1.6.1";
     send_fiveG_tuopu(mesh_ip, multicast_ip, fiveg_signal_strength);
 
     //通过5G发送
@@ -892,7 +892,7 @@ int main(int argc, char *argv[])
     {
         FiveG_detect(flag);
         Process();
-        get_mesh_data(mesh_signal_strength,12);//此处的6是自组网的id号
+        get_mesh_data(mesh_signal_strength,6);//此处的6是自组网的id号
 
         // 定
         Send_Topo();
