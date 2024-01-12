@@ -33,32 +33,14 @@ using namespace std;
 
 
 // meshvxlan1地址
-string mesh_addr[routing_num] = {
-	"0","0","0","0","0","0","10.2.6.1",
-	"0",
-	"0","0","0","0","10.2.12.1","0","0","0","0","0","0","0","0","0","0","0","0",
-	"0",
-	"0","10.2.27.1","0","0","0","0"
-};
+string *mesh_addr;
 
 // 5Gvxlan0地址
-string fiveG_addr[routing_num] = {
-	"0","0","0","0","10.1.4.1","0","10.1.6.1",
-	"0",
-	"0","0","0","0","10.1.12.1","0","0","0","0","0","0","0","0","0","0","0","0",
-	"0",
-	"0","0","0","0","0","0"
-};
+string *fiveG_addr;
 
 
 // 大网地址网桥
-string bignet_addr[routing_num] = {
-	"0","0","0","0","10.3.4.0","0","10.3.6.0",
-	"0",
-	"0","0","0","0","10.3.12.0","0","0","0","0","0","0","0","0","0","0","0","0",
-	"0",
-	"0","10.3.27.0","0","0","0","0"
-};
+string *bignet_addr;
 
 // 路由表类
 class routingTable
@@ -739,6 +721,32 @@ void update_routing_table(int src, routingTable* routing_table[routing_num], rou
 	}
 }
 
+// 构建地址表
+void build_address_table(int fiveG_topu_source[routing_num][routing_num], int mesh_topu_source[routing_num][routing_num])
+{
+	int five_flag = 0;
+    int j = 0;
+	// 因为mesh的不是全网拓扑，所以不能这样做
+	for(int i = 0; i < routing_num; i++)
+	{
+		for(j = 0; j < routing_num; j++)
+		{
+			if(fiveG_topu_source[i][j] > 0 && five_flag == 0)
+			{
+				bignet_addr[i] = "10.3." + to_string(i) + ".0";
+				fiveG_addr[i] = "10.1." + to_string(i) + ".1";
+				five_flag = 1;
+			}
+			if(mesh_topu_source[i][j] > 0)
+			{
+				mesh_addr[j] = "10.2." + to_string(j) + ".1";
+                bignet_addr[j] = "10.3." + to_string(j) + ".0";
+			}
+		}
+		five_flag = 0;
+	}
+}
+
 bool isInterfaceUp(const std::string& interfaceName) 
 {
     std::string path = "/sys/class/net/" + interfaceName + "/operstate";
@@ -787,14 +795,16 @@ void* routing_task(void *arg)
         //cout << "5G数据处理" << endl;
         //获取5G拓扑图
         get_topu(fiveG_signal_strength, fiveG_topu_source, 1);
-		for(int i = 0; i < 32; i++)
-		{
-			for(int j = 0; j < 32; j++)
-			{
-				cout << fiveG_topu_source[i][j] << " ";
-			}
-			cout << endl;
-		}
+		// for(int i = 0; i < 32; i++)
+		// {
+		// 	for(int j = 0; j < 32; j++)
+		// 	{
+		// 		cout << fiveG_topu_source[i][j] << " ";
+		// 	}
+		// 	cout << endl;
+		// }
+		//构建地址表
+		build_address_table(fiveG_topu_source, mesh_topu_source);
         //运行Dijkstr算法,计算路由表
         dijkstra(fiveG_topu_source, mesh_topu_source, src_num, current_routing_table);
 		// 打印路由表
@@ -899,11 +909,10 @@ void* httpserver(void *)
 
 
 
-/*Usage: ./code <ID_Number> <5G_server_IP> <mesh_broadcast_IP> <mesh_IP>*/
+/*Usage: ./code <ID_Number> <mesh_IP>*/
 /*以上数据若是没有直接输入0， 不能空着*/
 int main(int argc, char *argv[])
 {
-	
 	//将终端用户输入的ip信息存入全局变量中
 	strcpy(ID,argv[1]);
 	// strcpy(fiveG_ip, argv[2]);
@@ -912,6 +921,10 @@ int main(int argc, char *argv[])
 	// strcpy(mesh_broadcast_IP, argv[2]);
 	// strcpy(mesh_IP, argv[3]);//right?
 	strcpy(mesh_broadcast_IP, "239.0.125.1");
+  //分配地址表空间
+	mesh_addr = new string[routing_num];
+	fiveG_addr = new string[routing_num];
+	bignet_addr = new string[routing_num];
     // 创建线程变量
     pthread_t t1;
     pthread_t t2;
