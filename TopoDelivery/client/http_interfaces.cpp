@@ -23,8 +23,8 @@
 #include "client.h"
 #include <string>
 
-std::string localhost="10.3.6.1";
 
+extern std::string localhost;
 //TopologyQuery拓扑查询
 
 extern int mesh_topu_source[routing_num][routing_num];

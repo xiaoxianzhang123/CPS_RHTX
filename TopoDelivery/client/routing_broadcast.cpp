@@ -79,6 +79,7 @@ std::mutex mtx;
 // 终端用户输入的数据：<ID_Number> <5G_server_IP> <5G_server_PORT> <mesh_broadcast_IP> <mesh_IP>
 // 其中，将核心的地址信息存入全局变量中，便于接收函数使用。
 char ID[3];//设备ID
+string localhost;
 // char fiveG_ip[20]; 
 char mesh_broadcast_IP[20]; 
 // char mesh_broadcast_IP[20]="239.0.125.1"; 
@@ -917,10 +918,18 @@ int main(int argc, char *argv[])
 	strcpy(ID,argv[1]);
 	// strcpy(fiveG_ip, argv[2]);
 	// strcpy(mesh_broadcast_IP, argv[2]);
-	strcpy(mesh_IP, argv[2]);
+	sprintf(mesh_IP,"10.2.%s.1",ID);
+	//strcpy(mesh_IP, Mesh_IP);
 	// strcpy(mesh_broadcast_IP, argv[2]);
 	// strcpy(mesh_IP, argv[3]);//right?
 	strcpy(mesh_broadcast_IP, "239.0.125.1");
+	//cout<<"mesh_IP:"<<mesh_IP<<endl;
+
+	//得到大网IP地址
+	char localhost_temp[20];
+	sprintf(localhost_temp,"10.3.%s.1",ID);
+	localhost=localhost_temp;
+
   //分配地址表空间
 	mesh_addr = new string[routing_num];
 	fiveG_addr = new string[routing_num];
@@ -932,9 +941,9 @@ int main(int argc, char *argv[])
 
 
     //判断参数
-    if(argc != 3)
+    if(argc != 2)
     {
-        cout << "Usage: ./" << argv[0] << "<ID_Number> <mesh_IP>" << endl;
+        cout << "Usage: ./" << argv[0] << "<ID_Number>" << endl;
         return -1;
     }
 
