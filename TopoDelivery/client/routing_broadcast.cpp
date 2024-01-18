@@ -756,6 +756,17 @@ void build_address_table(int fiveG_topu_source[routing_num][routing_num], int me
 }
 
 
+bool isInterfaceUp(const std::string& interfaceName) 
+{
+    std::string path = "/sys/class/net/" + interfaceName + "/operstate";
+    std::ifstream file(path);
+    std::string state;
+    if (file >> state) {
+        return state == "up";
+    }
+    return false;
+}
+
 void* routing_task(void *arg)
 {
 	//传入参数为设备号
