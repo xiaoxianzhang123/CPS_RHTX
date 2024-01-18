@@ -596,6 +596,7 @@ void add_route(routingTable* routing_table_item, int src)
 			std::cout << "脚本执行成功" << std::endl;
 		} else {
 			std::cout << "脚本执行失败" << std::endl;
+			
 			perror("system");
 		}
 	}
