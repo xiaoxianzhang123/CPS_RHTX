@@ -577,15 +577,15 @@ void add_route(routingTable* routing_table_item, int src)
 		perror("system");
     }
 	//以下两条路由只需要添加一次
-	if(mesh_addr[src] == "0" || fiveG_addr[src] == "0")
+	if(strlen(mesh_addr[src]) == 0 || strlen(fiveG_addr[src]) == 0)
 	{
 		//如果当前源节点不是融合节点
-		if(mesh_addr[src] == "0" && mesh_addr[routing_table_item->R_fuse_id] != "0")
+		if(strlen(mesh_addr[src]) == 0 && strlen(mesh_addr[routing_table_item->R_fuse_id]) != 0)
 		{
 			command2 = sudoPermission + " "  +  "ip route add"+ " " + mesh_addr[routing_table_item->R_fuse_id] + " via" + " " + next_addr;
 		}
 		//如果当前源节点不是融合节点
-		if(fiveG_addr[src] == "0" && fiveG_addr[routing_table_item->R_fuse_id] != "0")
+		if(strlen(fiveG_addr[src]) == 0 && strlen(fiveG_addr[routing_table_item->R_fuse_id]) != 0)
 		{
 			command2 = sudoPermission + " "  +  "ip route add" + " " + fiveG_addr[routing_table_item->R_fuse_id] + " via" + " " + next_addr;
 		}
@@ -646,15 +646,15 @@ void delete_route(routingTable* routing_table_item, int src)
 		perror("system");
     }
 	//以下两条路由只需要添加一次
-	if(mesh_addr[src] == "0" || fiveG_addr[src] == "0")
+	if(strlen(mesh_addr[src]) == 0 || strlen(fiveG_addr[src]) == 0)
 	{
 		//如果当前源节点不是融合节点
-		if(mesh_addr[src] == "0" && mesh_addr[routing_table_item->R_fuse_id] != "0")
+		if(strlen(mesh_addr[src]) == 0 && strlen(mesh_addr[routing_table_item->R_fuse_id]) != 0)
 		{
 			command2 = sudoPermission + " "  +  "ip route del"+ " " + mesh_addr[routing_table_item->R_fuse_id] + " via" + " " + routing_table_item->R_next_addr;
 		}
 		//如果当前源节点不是融合节点
-		if(fiveG_addr[src] == "0" && fiveG_addr[routing_table_item->R_fuse_id] != "0")
+		if(strlen(fiveG_addr[src]) == 0 && strlen(fiveG_addr[routing_table_item->R_fuse_id]) != 0)
 		{
 			command2 = sudoPermission + " "  +  "ip route del"+ " " + fiveG_addr[routing_table_item->R_fuse_id] + " via" + " " + routing_table_item->R_next_addr;
 		}
@@ -727,6 +727,13 @@ void build_address_table(int fiveG_topu_source[routing_num][routing_num], int me
 {
 	int five_flag = 0;
     int j = 0;
+	//清空上一次地址表
+	for(int i = 0; i < routing_num; i++)
+	{
+		bignet_addr[i].clear();
+		fiveG_addr[i].clear();
+		mesh_addr[i].clear();
+	}
 	// 因为mesh的不是全网拓扑，所以不能这样做
 	for(int i = 0; i < routing_num; i++)
 	{
@@ -748,16 +755,6 @@ void build_address_table(int fiveG_topu_source[routing_num][routing_num], int me
 	}
 }
 
-bool isInterfaceUp(const std::string& interfaceName) 
-{
-    std::string path = "/sys/class/net/" + interfaceName + "/operstate";
-    std::ifstream file(path);
-    std::string state;
-    if (file >> state) {
-        return state == "up";
-    }
-    return false;
-}
 
 void* routing_task(void *arg)
 {
