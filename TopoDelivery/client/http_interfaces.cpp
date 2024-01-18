@@ -150,7 +150,8 @@ void IDQuery::HandleRequest(web::http::http_request request) {
 
         if (br0Pos != std::string::npos) {
             // Find the position of 'inet' in the context of br0
-            size_t inetPos = ifconfigOutput.find("inet", br0Pos);
+            //size_t inetPos = ifconfigOutput.find("inet", br0Pos);
+            size_t inetPos = ifconfigOutput.find("inet ", br0Pos);
             if (inetPos != std::string::npos) {
                 // Find the position of the first digit after 'inet'
                 size_t digitPos = ifconfigOutput.find_first_of("0123456789", inetPos);
