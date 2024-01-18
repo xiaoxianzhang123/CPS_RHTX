@@ -577,15 +577,15 @@ void add_route(routingTable* routing_table_item, int src)
 		perror("system");
     }
 	//以下两条路由只需要添加一次
-	if(strlen(mesh_addr[src]) == 0 || strlen(fiveG_addr[src]) == 0)
+	if(strlen(mesh_addr[src].c_str()) == 0 || strlen(fiveG_addr[src].c_str()) == 0)
 	{
 		//如果当前源节点不是融合节点
-		if(strlen(mesh_addr[src]) == 0 && strlen(mesh_addr[routing_table_item->R_fuse_id]) != 0)
+		if(strlen(mesh_addr[src].c_str()) == 0 && strlen(mesh_addr[routing_table_item->R_fuse_id].c_str()) != 0)
 		{
 			command2 = sudoPermission + " "  +  "ip route add"+ " " + mesh_addr[routing_table_item->R_fuse_id] + " via" + " " + next_addr;
 		}
 		//如果当前源节点不是融合节点
-		if(strlen(fiveG_addr[src]) == 0 && strlen(fiveG_addr[routing_table_item->R_fuse_id]) != 0)
+		if(strlen(fiveG_addr[src].c_str()) == 0 && strlen(fiveG_addr[routing_table_item->R_fuse_id].c_str()) != 0)
 		{
 			command2 = sudoPermission + " "  +  "ip route add" + " " + fiveG_addr[routing_table_item->R_fuse_id] + " via" + " " + next_addr;
 		}
@@ -646,15 +646,15 @@ void delete_route(routingTable* routing_table_item, int src)
 		perror("system");
     }
 	//以下两条路由只需要添加一次
-	if(strlen(mesh_addr[src]) == 0 || strlen(fiveG_addr[src]) == 0)
+	if(strlen(mesh_addr[src].c_str()) == 0 || strlen(fiveG_addr[src].c_str()) == 0)
 	{
 		//如果当前源节点不是融合节点
-		if(strlen(mesh_addr[src]) == 0 && strlen(mesh_addr[routing_table_item->R_fuse_id]) != 0)
+		if(strlen(mesh_addr[src].c_str()) == 0 && strlen(mesh_addr[routing_table_item->R_fuse_id].c_str()) != 0)
 		{
 			command2 = sudoPermission + " "  +  "ip route del"+ " " + mesh_addr[routing_table_item->R_fuse_id] + " via" + " " + routing_table_item->R_next_addr;
 		}
 		//如果当前源节点不是融合节点
-		if(strlen(fiveG_addr[src]) == 0 && strlen(fiveG_addr[routing_table_item->R_fuse_id]) != 0)
+		if(strlen(fiveG_addr[src].c_str()) == 0 && strlen(fiveG_addr[routing_table_item->R_fuse_id].c_str()) != 0)
 		{
 			command2 = sudoPermission + " "  +  "ip route del"+ " " + fiveG_addr[routing_table_item->R_fuse_id] + " via" + " " + routing_table_item->R_next_addr;
 		}
