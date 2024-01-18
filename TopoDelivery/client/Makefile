@@ -7,7 +7,7 @@ LDFLAGS := -lpthread -lcurl -ljsoncpp -lcpprest -lboost_system -lboost_chrono -l
 PG := -pg
 
 SRC = $(wildcard *.cpp)
-OBJ = $(patsubst %.cpp, %.o, SRC)
+OBJ = $(patsubst %.cpp, %.o, $(SRC))
 
 TARGET := code
 
