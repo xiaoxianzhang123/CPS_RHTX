@@ -220,43 +220,8 @@ TopologyQuery::TopologyQuery() : listener(web::http::experimental::listener::htt
     }
 }
 
-
-// void TopologyQuery::HandleRequest(web::http::http_request request) {
-//     try {
-//         // 构建 mesh_topo 和 fiveG_topo 的 JSON 数组
-//         web::json::value meshTopo;
-//         web::json::value fiveGTopo;
-
-//         // 将 mesh_topu_source 转换为 JSON 数组
-//         for (int i = 0; i < routing_num; ++i) {
-//             for (int j = 0; j < routing_num; ++j) {
-//                 meshTopo[i * routing_num + j] = web::json::value::number(mesh_topu_source[i][j]);
-//             }
-//         }
-
-//         // 将 fiveG_topu_source 转换为 JSON 数组
-//         for (int i = 0; i < routing_num; ++i) {
-//             for (int j = 0; j < routing_num; ++j) {
-//                 fiveGTopo[i * routing_num + j] = web::json::value::number(fiveG_topu_source[i][j]);
-//             }
-//         }
-
-//         // 构建最终 JSON 响应
-//         web::json::value response;
-//         response[U("code")] = web::json::value::string(U("1"));
-//         response[U("msg")] = web::json::value::string(U("success"));
-//         response[U("mesh_topo")] = meshTopo; // 将 mesh_topu_source 转换后的 JSON 数组放入响应中
-//         response[U("fiveG_topo")] = fiveGTopo; // 将 fiveG_topu_source 转换后的 JSON 数组放入响应中
-
-//         // 回复请求
-//         request.reply(web::http::status_codes::OK, response);
-//     }
-//     catch (const std::exception& ex) {
-//         std::cerr << "Exception caught: " << ex.what() << std::endl;
-//         request.reply(web::http::status_codes::InternalError, U("Internal server error"));
-//     }
-// }
-
+//构建融合拓扑，现在的融合拓扑含义为：拓扑矩阵中除了0元素，就是3位数，3位数的个位表示融合的连接情况type
+//十位是mesh自组网电台的连接质量，百位是5G电台的连接质量
 void TopologyQuery::HandleRequest(web::http::http_request request) {
     try {
         // 创建并复制 Meshtopo 和 FiveGtopo 矩阵
@@ -303,7 +268,7 @@ void TopologyQuery::HandleRequest(web::http::http_request request) {
 
         for (int i = 0; i < routing_num; ++i) {
             for (int j = 0; j < routing_num; ++j) {
-                RongHetopusource[i][j] = Typetopo[i][j] * 100 + MeshQuality[i][j] * 10 + FiveGQuality[i][j];
+                RongHetopusource[i][j] = Typetopo[i][j] + MeshQuality[i][j] * 10 + FiveGQuality[i][j] * 100;
             }
         }
 
