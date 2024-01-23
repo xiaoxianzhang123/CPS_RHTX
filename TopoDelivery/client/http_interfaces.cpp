@@ -271,7 +271,11 @@ void TopologyQuery::HandleRequest(web::http::http_request request) {
                 RongHetopusource[i][j] = Typetopo[i][j] + MeshQuality[i][j] * 10 + FiveGQuality[i][j] * 100;
             }
         }
-
+        // 构建最终 JSON 响应
+        web::json::value response;
+        response[U("code")] = web::json::value::number(1);
+        response[U("msg")] = web::json::value::string(U("success"));
+        
         // 将 RongHetopusource 转换为 JSON 数组
         web::json::value RongHetopusourceArray;
         for (int i = 0; i < routing_num; ++i) {
@@ -280,11 +284,12 @@ void TopologyQuery::HandleRequest(web::http::http_request request) {
             }
         }
 
-        // 构建最终 JSON 响应
-        web::json::value response;
-        response[U("code")] = web::json::value::string(U("1"));
-        response[U("msg")] = web::json::value::string(U("success"));
-        response[U("RongHetopo")] = RongHetopusourceArray;
+        // 构建 "data" 对象
+        web::json::value dataObject;
+        dataObject[U("RongHetopo")] = rongHetopusourceArray;
+
+        // 将 "data" 对象添加到响应中
+        response[U("data")] = dataObject;
 
         // 回复请求
         request.reply(web::http::status_codes::OK, response);
@@ -368,8 +373,8 @@ void SourceQuery::HandleRequest(web::http::http_request request) {
 
         // 定义 type 到 pcilan 的映射
         std::unordered_map<int, std::string> typeToPcilan = {
-            {0, "vxlan0"},
-            {1, "vxlan1"},
+            {0, "vxlan0"},    //0是5G设备
+            {1, "vxlan1"},    //1是mesh设备
             {2, "vxlan2"},
             {3, "vxlan3"}
             // 在此处添加更多的映射
