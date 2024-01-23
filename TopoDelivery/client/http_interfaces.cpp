@@ -283,26 +283,12 @@ void TopologyQuery::HandleRequest(web::http::http_request request) {
                 RongHetopusourceArray[i * routing_num + j] = web::json::value::number(RongHetopusource[i][j]);
             }
         }
-        //mesh
-        web::json::value MeshArray;
-        for (int i = 0; i < routing_num; ++i) {
-            for (int j = 0; j < routing_num; ++j) {
-                MeshArray[i * routing_num + j] = web::json::value::number(MeshQuality[i][j]);
-            }
-        }
-        //5G
-        web::json::value FiveGArray;
-        for (int i = 0; i < routing_num; ++i) {
-            for (int j = 0; j < routing_num; ++j) {
-                FiveGArray[i * routing_num + j] = web::json::value::number(FiveGQuality[i][j]);
-            }
-        }
+        
 
         // 构建 "data" 对象
         web::json::value dataObject;
         dataObject[U("RongHetopo")] = rongHetopusourceArray;
-        dataObject[U("mesh")] = MeshArray;
-        dataObject[U("5G")] = FiveGArray;
+
         // 将 "data" 对象添加到响应中
         response[U("data")] = dataObject;
 
