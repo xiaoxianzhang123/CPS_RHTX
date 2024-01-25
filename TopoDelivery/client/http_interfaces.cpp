@@ -22,7 +22,7 @@
 #include <vector>
 #include "client.h"
 #include <string>
-
+#include <locale>
 
 extern std::string localhost;
 //TopologyQuery拓扑查询
