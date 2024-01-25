@@ -271,26 +271,22 @@ void TopologyQuery::HandleRequest(web::http::http_request request) {
                 RongHetopusource[i][j] = Typetopo[i][j] + MeshQuality[i][j] * 10 + FiveGQuality[i][j] * 100;
             }
         }
-        // 构建最终 JSON 响应
-        web::json::value response;
-        response[U("code")] = web::json::value::number(1);
-        response[U("msg")] = web::json::value::string(U("success"));
-        
-        // 将 RongHetopusource 转换为 JSON 数组
+      
+       // 将 RongHetopusource 转换为 JSON 数组
         web::json::value RongHetopusourceArray;
         for (int i = 0; i < routing_num; ++i) {
             for (int j = 0; j < routing_num; ++j) {
-                RongHetopusourceArray[i * routing_num + j] = web::json::value::number(RongHetopusource[i][j]);
+                 RongHetopusourceArray[i * routing_num + j] = web::json::value::number(RongHetopusource[i][j]);
             }
         }
-        
+       // 构建最终 JSON 响应
+        web::json::value response;
+        response[U("code")] = web::json::value::number(1);
+        response[U("msg")] = web::json::value::string(U("success"));
+        response[U("data")] = web::json::value::object({
+            { U("RongHetopo"), RongHetopusourceArray }
+            });
 
-        // 构建 "data" 对象
-        web::json::value dataObject;
-        dataObject[U("RongHetopo")] = rongHetopusourceArray;
-
-        // 将 "data" 对象添加到响应中
-        response[U("data")] = dataObject;
 
         // 回复请求
         request.reply(web::http::status_codes::OK, response);
