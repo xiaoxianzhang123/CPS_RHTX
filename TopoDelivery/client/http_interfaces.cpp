@@ -280,10 +280,12 @@ void TopologyQuery::HandleRequest(web::http::http_request request) {
             }
         }
        // 构建最终 JSON 响应
-   web::json::value response;
-  response[U("code")] = web::json::value::number(1);
-  response[U("msg")] = web::json::value::string(U("success"));
-  response[U("RongHetopo")] = RongHetopusourceArray;
+web::json::value response;
+response[U("code")] = web::json::value::number(1);
+response[U("msg")] = web::json::value::string(U("success"));
+response[U("data")] = web::json::value::object({
+    { U("RongHetopo"), RongHetopusourceArray }
+    });
 
 
         // 回复请求
