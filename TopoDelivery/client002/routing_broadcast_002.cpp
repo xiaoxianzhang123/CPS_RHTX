@@ -770,6 +770,7 @@ bool isInterfaceUp(const std::string& interfaceName)
 
 void* routing_task(void *arg)
 {
+	int count = 0;
 	//传入参数为设备号
 	int src_num = std::atoi((char *)arg);
     struct timespec sleepTime;
@@ -788,10 +789,16 @@ void* routing_task(void *arg)
     /*以下工作需要重复执行， 注释部分是调试信息输出*/
     while(1)
     {
+		//过了6秒received还没置1也进行一次路由计算
 		if(received==0)
 		{
-			sleep(1);
-			continue;
+			count++;
+			if(count <= 1)
+			{
+				sleep(1);
+				continue;
+			}
+			count = 0;
 		}
 		//加锁
 		mtx.lock();
