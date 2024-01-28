@@ -798,8 +798,8 @@ void* routing_task(void *arg)
 				sleep(1);
 				continue;
 			}
-			count = 0;
 		}
+		count = 0;
 		//加锁
 		mtx.lock();
 		//若是自己有电台连接，则自己获取电台的数据
