@@ -770,7 +770,6 @@ bool isInterfaceUp(const std::string& interfaceName)
 
 void* routing_task(void *arg)
 {
-	int count = 0;
 	//传入参数为设备号
 	int src_num = std::atoi((char *)arg);
     struct timespec sleepTime;
@@ -789,16 +788,10 @@ void* routing_task(void *arg)
     /*以下工作需要重复执行， 注释部分是调试信息输出*/
     while(1)
     {
-		//过了6秒received还没置1也进行一次路由计算
 		if(received==0)
 		{
-			count++;
-			if(count <= 1)
-			{
-				sleep(1);
-				continue;
-			}
-			count = 0;
+			sleep(1);
+			continue;
 		}
 		//加锁
 		mtx.lock();
@@ -957,22 +950,15 @@ int main(int argc, char *argv[])
 
 
     //判断参数
-    if(argc != 2)
+    if(argc != 3)
     {
-        cout << "Usage: ./" << argv[0] << "<ID_Number>" << endl;
+        cout << "Usage: ./" << argv[0] << "<ID_Number> <Mesh_Interface_name>" << endl;
         return -1;
     }
 
 	//用于检查某些接口是否中途断开
 	interfaceName_5G = "pcilan3"; // interface name
-	if(strcmp(ID,"12")!=0)//when the number of ID is "7",the interface have some changes because some problems.
-	{
-		interfaceName_Mesh = "pcilan2"; // interface name
-	}
-	else
-	{
-		interfaceName_Mesh = "pcilan1"; // interface name
-	}
+	interfaceName_Mesh = argv[2];
 
 
     // 创建线程并启动任务
